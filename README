@@ -1,39 +1,193 @@
-Finance Terms Application
-This application manages finance terms using an in-memory SQLite database. It allows you to create finance terms, update their status, and retrieve them with optional filters and sorting.
+# Finance Terms Application
 
-Why SQLite3?
-SQLite3 was chosen for its simplicity and lightweight nature, making it suitable for applications that require a local, file-based or in-memory database without the need for a separate server process. It's widely supported and works seamlessly with Node.js applications.
+This application manages finance terms using an in-memory SQLite database. It allows users to create, update the status of, and retrieve finance terms with optional filters and sorting.
 
-Installation
+## Why SQLite3?
+
+SQLite3 was chosen for its simplicity and lightweight nature, making it suitable for applications that require a local, file-based or in-memory database without the need for a separate server process. It's widely supported and integrates seamlessly with Node.js applications, making it an ideal choice for this application.
+
+---
+
+## Features
+
+1. **Create Finance Terms**: Create new finance terms with a JSON object containing necessary data.
+2. **Update Finance Term Status**: Update the status of a finance term (e.g., from "pending" to "agreed").
+3. **List Finance Terms**: Retrieve a list of finance terms with optional filtering and sorting.
+4. **Error Handling**: Graceful error handling with appropriate status codes and error messages.
+
+---
+
+## Installation
+
+To set up and run this application, follow these steps:
+
+### 1. Clone the Repository
+
+Clone the repository to your local machine:
+
+```bash
+git clone https://github.com/your-username/finance-terms-application.git
+cd finance-terms-application
+```
+
+### 2. Install Dependencies
+
 To install the necessary dependencies, run:
 
+```bash
 npm install
+```
+
+### 3. Start the Server
+
+Start the server by running:
+
+```bash
 node ./server
+```
 
-Running Tests
+The server will be available at `http://localhost:3000`.
+
+---
+
+## Database Schema
+
+The `FinanceTerms` table in the SQLite database has the following schema:
+
+| Column               | Type                | Description                                                            |
+|----------------------|---------------------|------------------------------------------------------------------------|
+| `id`                 | INTEGER PRIMARY KEY AUTOINCREMENT | Unique identifier for each finance term.                            |
+| `insurancePolicies`  | TEXT                | JSON string representing insurance policies associated with the finance term. |
+| `downpayment`        | REAL                | Amount paid upfront.                                                  |
+| `dueDate`            | TEXT                | Due date for payments.                                                |
+| `amountFinanced`     | REAL                | Total amount financed.                                                |
+| `status`             | TEXT                | Current status of the finance term (e.g., "pending", "agreed").       |
+
+---
+
+## API Endpoints
+
+### 1. **Create Finance Term**
+- **Method**: `POST`
+- **Endpoint**: `/finance-terms`
+- **Request Body**: JSON object with `insurancePolicies` (JSON string) and `dueDate`.
+- **Response**: Returns the created finance term including calculated `downpayment` and `amountFinanced`.
+
+#### Example Request:
+```json
+{
+  "insurancePolicies": "{\"policyNumber\":\"ABC123\",\"policyType\":\"Auto\"}",
+  "dueDate": "2024-12-01"
+}
+```
+
+#### Example Response:
+```json
+{
+  "id": 1,
+  "insurancePolicies": "{\"policyNumber\":\"ABC123\",\"policyType\":\"Auto\"}",
+  "downpayment": 1500,
+  "dueDate": "2024-12-01",
+  "amountFinanced": 12000,
+  "status": "pending"
+}
+```
+
+### 2. **Update Finance Term Status**
+- **Method**: `PATCH`
+- **Endpoint**: `/finance-terms/:id/agree`
+- **Description**: Update the status of a finance term to "agreed".
+- **Response**: Returns the updated finance term.
+
+#### Example Request:
+```bash
+PATCH /finance-terms/1/agree
+```
+
+#### Example Response:
+```json
+{
+  "id": 1,
+  "insurancePolicies": "{\"policyNumber\":\"ABC123\",\"policyType\":\"Auto\"}",
+  "downpayment": 1500,
+  "dueDate": "2024-12-01",
+  "amountFinanced": 12000,
+  "status": "agreed"
+}
+```
+
+### 3. **List Finance Terms**
+- **Method**: `GET`
+- **Endpoint**: `/finance-terms`
+- **Query Parameters**: 
+    - `downpayment`: Filter by downpayment amount.
+    - `status`: Filter by status (e.g., "pending", "agreed").
+    - `sort`: Sort by a specific field and order (e.g., `dueDate:asc`, `downpayment:desc`).
+
+#### Example Request:
+```bash
+GET /finance-terms?status=pending&sort=dueDate:asc
+```
+
+#### Example Response:
+```json
+[
+  {
+    "id": 1,
+    "insurancePolicies": "{\"policyNumber\":\"ABC123\",\"policyType\":\"Auto\"}",
+    "downpayment": 1500,
+    "dueDate": "2024-12-01",
+    "amountFinanced": 12000,
+    "status": "pending"
+  },
+  {
+    "id": 2,
+    "insurancePolicies": "{\"policyNumber\":\"XYZ456\",\"policyType\":\"Home\"}",
+    "downpayment": 2000,
+    "dueDate": "2024-12-15",
+    "amountFinanced": 15000,
+    "status": "pending"
+  }
+]
+```
+
+---
+
+## Error Handling
+
+Errors are handled gracefully with appropriate status codes and detailed error messages in the response. Possible errors include:
+
+- **400 Bad Request**: If the request body is invalid or required fields are missing.
+- **404 Not Found**: If the finance term ID does not exist.
+- **500 Internal Server Error**: If there is a database or server issue.
+
+#### Example Error Response:
+```json
+{
+  "error": "Finance term not found"
+}
+```
+
+---
+
+## Running Tests
+
+To run the tests, use the following command:
+
+```bash
 npm test
+```
 
+This will execute unit tests to verify the functionality of the application, ensuring the correctness of finance term creation, updating, and listing.
 
-Finance Terms Table
-The FinanceTerms table in the SQLite database has the following schema:
+---
 
-id INTEGER PRIMARY KEY AUTOINCREMENT: Unique identifier for each finance term.
-insurancePolicies TEXT: JSON string representing insurance policies associated with the finance term.
-downpayment REAL: Amount paid upfront.
-dueDate TEXT: Due date for payments.
-amountFinanced REAL: Total amount financed.
-status TEXT: Current status of the finance term (e.g., pending, agreed).
+## License
 
-How It Works
-Creating Finance Terms
-To create a new finance term, send a POST request to /finance-terms with JSON data containing insurancePolicies and dueDate. The server calculates downpayment and amountFinanced based on the provided policies and responds with the created finance term.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-Updating Finance Term Status
-To update the status of a finance term to "agreed", send a PATCH request to /finance-terms/:id/agree, where :id is the ID of the finance term. The server updates the status in the database and returns the updated finance term.
+---
 
-Listing Finance Terms
-To list finance terms with optional filters and sorting, send a GET request to /finance-terms. You can filter by downpayment and status, and sort by fields in ascending or descending order by providing the sort query parameter (field:order).
+## Conclusion
 
-Error Handling
-Errors, such as missing insurance policies or database issues, are handled gracefully with appropriate status codes and error messages returned in JSON format.
-
+This Finance Terms Application provides a simple and effective way to manage finance terms using a lightweight SQLite database. It supports basic CRUD operations along with filtering and sorting capabilities, and is easy to set up with minimal dependencies.
